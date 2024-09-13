@@ -11,4 +11,4 @@ default:
 	qemu-system-x86_64 bin/final.bin
 
 clean:
-	rmdir /s /q "bin"
+	- rmdir /s /q "bin"

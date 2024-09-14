@@ -5,7 +5,7 @@
 #define ROW_SIZE 80
 #define COL_SIZE 25
 
-char* itoa(int value, char* str, int base) {
+char* IntToString(int value, char* str, int base) {
     char *rc, *ptr, *low;
 
     if (base < 2 || base > 36) {
@@ -81,7 +81,7 @@ extern "C" void _start() {
     while (true) {
         Clear();
         WriteString("Hello, World!\nTicks: ");
-        WriteString(itoa(x++, nullptr, 10));
+        WriteString(IntToString(x++, nullptr, 10));
         WriteString("\n");
 
         for (uint64_t i = 0; i < (uint64_t) (x / 100); i++)

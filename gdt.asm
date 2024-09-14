@@ -1,7 +1,7 @@
-gdt_nulldesc:
+GDTNullDesc:
     dd 0, 0
 
-gdt_codedesc:
+GDTCodeSeg:
     dw 0xFFFF
     dw 0x0000
     db 0x00
@@ -9,7 +9,7 @@ gdt_codedesc:
     db 11001111b
     db 0x00
 
-gdt_datadesc:
+GDTDataSeg:
     dw 0xFFFF
     dw 0x0000
     db 0x00
@@ -17,20 +17,18 @@ gdt_datadesc:
     db 11001111b
     db 0x00
 
-gdt_end:
+GDTDescriptor:
+    GDTSize:
+        dw GDTDescriptor - GDTNullDesc - 1
+        dd GDTNullDesc
 
-gdt_descriptor:
-    gdt_size:
-        dw gdt_end - gdt_nulldesc - 1
-        dd gdt_nulldesc
-
-codeseg equ gdt_codedesc - gdt_nulldesc
-dataseg equ gdt_datadesc - gdt_nulldesc
+CodeSeg equ GDTCodeSeg - GDTNullDesc
+DataSeg equ GDTDataSeg - GDTNullDesc
 
 [bits 32]
-edit_gdt:
-    mov [gdt_codedesc + 6], byte 10101111b
-    mov [gdt_datadesc + 6], byte 10101111b
+EditGDT:
+    mov [GDTCodeSeg + 6], byte 10101111b
+    mov [GDTDataSeg + 6], byte 10101111b
     ret
 
 [bits 16]

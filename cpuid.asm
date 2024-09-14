@@ -1,4 +1,4 @@
-detect_cpuid:
+DetectCPUId:
     pushfd
     pop eax
     mov ecx, eax
@@ -12,18 +12,18 @@ detect_cpuid:
     popfd
 
     xor eax, ecx
-    jz no_cpuid
+    jz .NoCPUId
     ret
 
-detect_long_mode:
+    .NoCPUId:
+        hlt
+
+DetectLongMode:
     mov eax, 0x80000001
     cpuid
     test edx, 1 << 29
-    jz no_long_mode
+    jz .NoLongMode
     ret
 
-no_cpuid:
-    hlt
-
-no_long_mode:
-    hlt
+    .NoLongMode:
+        hlt

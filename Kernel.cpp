@@ -5,6 +5,40 @@
 #define ROW_SIZE 80
 #define COL_SIZE 25
 
+#define FOREGROUND_BLACK 0x00
+#define FOREGROUND_BLUE 0x01
+#define FOREGROUND_GREEN 0x02
+#define FOREGROUND_CYAN 0x03
+#define FOREGROUND_RED 0x04
+#define FOREGROUND_MAGENTA 0x05
+#define FOREGROUND_BROWN 0x06
+#define FOREGROUND_LIGHT_GREY 0x07
+#define FOREGROUND_DARK_GREY 0x08
+#define FOREGROUND_LIGHT_BLUE 0x09
+#define FOREGROUND_LIGHT_GREEN 0x0A
+#define FOREGROUND_LIGHT_CYAN 0x0B
+#define FOREGROUND_LIGHT_RED 0x0C
+#define FOREGROUND_LIGHT_MAGENTA 0x0D
+#define FOREGROUND_LIGHT_BROWN 0x0E
+#define FOREGROUND_WHITE 0x0F
+
+#define BACKGROUND_BLACK 0x00
+#define BACKGROUND_BLUE 0x10
+#define BACKGROUND_GREEN 0x20
+#define BACKGROUND_CYAN 0x30
+#define BACKGROUND_RED 0x40
+#define BACKGROUND_MAGENTA 0x50
+#define BACKGROUND_BROWN 0x60
+#define BACKGROUND_LIGHT_GREY 0x70
+#define BACKGROUND_DARK_GREY 0x80
+#define BACKGROUND_LIGHT_BLUE 0x90
+#define BACKGROUND_LIGHT_GREEN 0xA0
+#define BACKGROUND_LIGHT_CYAN 0xB0
+#define BACKGROUND_LIGHT_RED 0xC0
+#define BACKGROUND_LIGHT_MAGENTA 0xD0
+#define BACKGROUND_LIGHT_BROWN 0xE0
+#define BACKGROUND_WHITE 0xF0
+
 char* IntToString(int value, char* str, int base) {
     char *rc, *ptr, *low;
 
@@ -36,7 +70,7 @@ uint64_t cursorPos = 0;
 
 void EnterPanicMode(const char* reason);
 
-void SetCharAt(uint64_t pos, uint8_t chr, uint8_t color = 0x00 | 0x0F) {
+void SetCharAt(uint64_t pos, uint8_t chr, uint8_t color = FOREGROUND_WHITE | BACKGROUND_BLACK) {
     if (pos >= ROW_SIZE * COL_SIZE)
         EnterPanicMode("Cursor position out of bounds.");
 
@@ -44,7 +78,7 @@ void SetCharAt(uint64_t pos, uint8_t chr, uint8_t color = 0x00 | 0x0F) {
     videoBuffer[pos * 2 + 1] = color;
 }
 
-void WriteString(const char* string, uint8_t color = 0x00 | 0x0F) {
+void WriteString(const char* string, uint8_t color = FOREGROUND_WHITE | BACKGROUND_BLACK) {
     for (uint64_t i = 0; string[i] != '\0'; i++) {
         if (string[i] == '\n') {
             cursorPos += ROW_SIZE - (cursorPos % ROW_SIZE);
@@ -54,7 +88,7 @@ void WriteString(const char* string, uint8_t color = 0x00 | 0x0F) {
     }
 }
 
-void Clear(uint8_t color = 0x00 | 0x00) {
+void Clear(uint8_t color = BACKGROUND_BLACK | BACKGROUND_BLACK) {
     for (uint64_t i = 0; i < ROW_SIZE * COL_SIZE; i++) {
         SetCharAt(i, 219, color);
     } cursorPos = 0;
@@ -67,10 +101,10 @@ void SwapBuffers() {
 
 void EnterPanicMode(const char* reason) {
     while (true) {
-        Clear(0x00 | 0x04);
-        WriteString("Kernel panic occured, system halted.\n", 0x00 | 0x04);
-        WriteString("Reason: ", 0x00 | 0x04);
-        WriteString(reason, 0x00 | 0x04);
+        Clear(FOREGROUND_RED | FOREGROUND_RED);
+        WriteString("Kernel panic occured, system halted.\n", FOREGROUND_RED | BACKGROUND_BLACK);
+        WriteString("Reason: ", FOREGROUND_RED | BACKGROUND_BLACK);
+        WriteString(reason, FOREGROUND_RED | BACKGROUND_BLACK);
         SwapBuffers();
     }
 }

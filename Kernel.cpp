@@ -75,7 +75,7 @@ void EnterPanicMode(const char* reason) {
     }
 }
 
-extern "C" void _start() {
+extern "C" void Entry() {
     uint64_t x = 0;
 
     while (true) {

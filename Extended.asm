@@ -34,14 +34,14 @@ StartProtectedMode:
     jmp CodeSeg:StartLongMode
 
 [bits 64]
-[extern _start]
+[extern Entry]
 
 StartLongMode:
     mov edi, 0xb8000
     mov rax, 0x0f200f200f200f20
     mov ecx, 500
     rep stosq
-    call _start
+    call Entry
     jmp $
 
 times 2048 - ($ - $$) db 0

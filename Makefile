@@ -7,8 +7,8 @@ cc := wsl /usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
 ld := wsl /usr/local/x86_64elfgcc/bin/x86_64-elf-ld
 # objcopy := wsl llvm-objcopy
 objcopy := wsl /usr/local/x86_64elfgcc/bin/x86_64-elf-objcopy
-# emulator := qemu-system-x86_64
-emulator := bochs
+# emulator := bochs
+emulator := qemu-system-x86_64
 
 default: bin run
 
@@ -34,8 +34,8 @@ bin/Image.bin: bin/Boot.bin bin/Kernel.bin
 	copy /b $(subst $(space),+,$(subst /,\,$^)) $(subst /,\,$@)
 
 run: bin/Image.bin
-#	$(emulator) $<
-	$(emulator) -q -f bochsrc.bxrc
+	$(emulator) -drive if=floppy,format=raw,file=$<
+#	$(emulator) -q -f bochsrc.bxrc
 
 bin:
 	@mkdir "bin"

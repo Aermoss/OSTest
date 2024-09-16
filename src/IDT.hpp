@@ -36,13 +36,26 @@ void InitializeIDT() {
     LoadIDT();
 }
 
-void (*keyboardHandler)(uint8_t scancode);
+typedef void (*KeyboardHandlerFunc)(uint8_t scancode);
+KeyboardHandlerFunc keyboardHandler = nullptr;
+
+void SetKeyboardHandler(KeyboardHandlerFunc handler) {
+    keyboardHandler = handler;
+}
+
+KeyboardHandlerFunc GetKeyboardHandler() {
+    return keyboardHandler;
+}
+
+bool HasKeyboardHandler() {
+    return keyboardHandler != nullptr;
+}
 
 extern "C" void ISRHandler() {
     uint8_t scancode = inb(0x60);
 
-    if (keyboardHandler != nullptr)
-        keyboardHandler(scancode);
+    if (HasKeyboardHandler())
+        GetKeyboardHandler()(scancode);
 
     outb(0x20, 0x20);
     outb(0xa0, 0x20);

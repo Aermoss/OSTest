@@ -1,30 +1,41 @@
 empty :=
 space := $(empty) $(empty)
+assembler := nasm
+# cc := wsl clang --target=x86_64-elf
 cc := wsl /usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
-emulator := qemu-system-x86_64
+# ld := wsl ld.lld
+ld := wsl /usr/local/x86_64elfgcc/bin/x86_64-elf-ld
+# objcopy := wsl llvm-objcopy
+objcopy := wsl /usr/local/x86_64elfgcc/bin/x86_64-elf-objcopy
+# emulator := qemu-system-x86_64
+emulator := bochs
 
 default: bin run
 
-bin/Boot.bin: Boot.asm $(wildcard *.asm)
-	nasm $< -f bin -o $@
+bin/Boot.bin: src/Boot.asm $(wildcard src/*.asm)
+	$(assembler) $< -f bin -o $@ -i src
 
-bin/Extended.o: Extended.asm $(wildcard *.asm)
-	nasm $< -f elf64 -o $@
+bin/Extended.o: src/Extended.asm $(wildcard src/*.asm)
+	$(assembler) $< -f elf64 -o $@ -i src
 
-bin/Kernel.o: Kernel.cpp $(wildcard *.hpp)
-	$(cc) -ffreestanding -mno-red-zone -m64 -c $< -o $@
+bin/Binaries.o: src/Binaries.asm $(wildcard ./*.txt)
+	$(assembler) $< -f elf64 -o $@ -i src
 
-bin/Kernel.tmp: bin/Extended.o bin/Kernel.o
-	ld -Ttext 0x8000 $^ -o $@
+bin/Kernel.o: src/Kernel.cpp $(wildcard src/*.hpp)
+	$(cc) -Ttext 0x8000 -ffreestanding -mno-red-zone -m64 -c $< -o $@
 
-bin/Kernel.bin: bin/Kernel.tmp
-	objcopy -O binary $< $@
+bin/Kernel.bin: bin/Extended.o bin/Binaries.o bin/Kernel.o
+	$(ld) -T"Link.ld" $^ -o $@
 
-bin/Final.bin: bin/Boot.bin bin/Kernel.bin
+# bin/Kernel.bin: bin/Kernel.tmp
+#	$(objcopy) -O binary $< $@
+
+bin/Image.bin: bin/Boot.bin bin/Kernel.bin
 	copy /b $(subst $(space),+,$(subst /,\,$^)) $(subst /,\,$@)
 
-run: bin/Final.bin
-	$(emulator) $<
+run: bin/Image.bin
+#	$(emulator) $<
+	$(emulator) -q -f bochsrc.bxrc
 
 bin:
 	@mkdir "bin"

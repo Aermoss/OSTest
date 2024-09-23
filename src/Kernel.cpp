@@ -161,10 +161,43 @@ bool leftShiftPressed = false;
 bool rightShiftPressed = false;
 bool capsLockState = false;
 
+uint64_t strcmp(const char* str1, const char* str2) {
+    for (uint64_t i = 0; true; i++)
+        if (str1[i] != str2[i] || str1[i] == '\0' || str2[i] == '\0')
+            return str1[i] - str2[i];
+}
+
 uint64_t strlen(const char* str) {
     uint64_t len = 0;
     while (str[len] != '\0') len++;
     return len;
+}
+
+void ExecuteCommand(const char* command) {
+    if (strcmp(command, "halt") == 0) {
+        asm volatile ("hlt");
+    } else if (strcmp(command, "clear") == 0) {
+        for (uint32_t i = 0; i < MAX_INPUT_TEXT_COUNT; i++) {
+            for (uint32_t j = 0; j < MAX_INPUT_LENGTH + 1; j++) {
+                if (enteredTexts[i][j] == '\0') break;
+                enteredTexts[i][j] = '\0';
+            }
+        }
+    } else {
+        for (uint32_t i = 1; i < MAX_INPUT_TEXT_COUNT; i++) {
+            for (uint32_t j = 0; j < MAX_INPUT_LENGTH + 1; j++) {
+                enteredTexts[i - 1][j] = enteredTexts[i][j];
+                enteredTexts[i][j] = '\0';
+            }
+        }
+
+        const char* text = "Unknown command: ";
+
+        for (uint32_t i = 0; i < MAX_INPUT_LENGTH + 1; i++) {
+            enteredTexts[MAX_INPUT_TEXT_COUNT - 1][i] = text[i];
+            if (text[i] == '\0') break;
+        }
+    } return;
 }
 
 void KeyboardHandler(uint8_t scancode) {
@@ -255,12 +288,15 @@ void KeyboardHandler(uint8_t scancode) {
                 if (inputText[0] == '\0')
                     break;
 
+                textCursorPos = 0, textHistoryPos = 0;
+                ExecuteCommand((const char*) inputText);
+
                 for (uint32_t i = 1; i < MAX_INPUT_TEXT_COUNT; i++) {
                     for (uint32_t j = 0; j < MAX_INPUT_LENGTH + 1; j++) {
                         enteredTexts[i - 1][j] = enteredTexts[i][j];
                         enteredTexts[i][j] = '\0';
                     }
-                } textCursorPos = 0, textHistoryPos = 0;
+                }
 
                 for (uint32_t i = 0; i < MAX_INPUT_LENGTH + 1; i++) {
                     enteredTexts[MAX_INPUT_TEXT_COUNT - 1][i] = inputText[i];

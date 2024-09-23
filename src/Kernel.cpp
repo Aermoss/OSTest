@@ -261,20 +261,41 @@ void EnterPanicMode(const char* reason) {
     }
 }
 
+static long seed = 1L;
+
+void srand(unsigned int _seed) {
+    seed = (long) _seed;
+}
+
+int rand() {
+    seed = (seed * 214013L) + 2531011L;
+    return (seed >> 16) & 0x7fff;
+}
+
+uint64_t RandInt(uint64_t min, uint64_t max) {
+    return min + (rand() % (max - min + 1));
+}
+
 extern const char Text[];
 extern uint64_t Text_Size;
 
 extern "C" void Entry() {
     InitializeIDT();
     SetKeyboardHandler(KeyboardHandler);
-    uint64_t x = 0;
+    uint64_t x = 0, y = 0, i = 0;
 
     while (true) {
         Clear();
         WriteString(Text);
         WriteString("\nTicks: ");
         WriteString(IntToString(x++, nullptr, 10));
+        WriteString("\nRandom Number: ");
+        WriteString(IntToString(y, nullptr, 10));
         WriteString("\n");
+        seed++;
+
+        if (i++ > 1024)
+            y = RandInt(10, 100), i = 0;
         
         for (uint64_t i = MAX_INPUT_TEXT_COUNT - 8; i < MAX_INPUT_TEXT_COUNT; i++) {
             if (enteredTexts[i][0] == '\0') continue;

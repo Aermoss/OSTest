@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <limits.h>
 
+#define DOUBLE_BUFFERING 1
+
 #define VIDEO_MEMORY 0xb8000
 #define VIDEO_WIDTH 80
 #define VIDEO_HEIGHT 25
@@ -78,7 +80,14 @@ void SetCursorPosition(uint64_t pos) {
     if (pos >= VIDEO_WIDTH * VIDEO_HEIGHT)
         EnterPanicMode("Cursor position out of bounds.");
 
+#if DOUBLE_BUFFERING
     cursorPos = pos;
+#else
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t) (pos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
+#endif
     return;
 }
 
@@ -97,8 +106,13 @@ void WriteString(const char* string, uint8_t color = FOREGROUND_WHITE | BACKGROU
         } else if (string[i] == '\r') {
             cursorPos -= cursorPos % VIDEO_WIDTH;
         } else {
+#if DOUBLE_BUFFERING
             videoBuffer[cursorPos * 2] = string[i];
             videoBuffer[cursorPos * 2 + 1] = color;
+#else
+            *(uint8_t*) (VIDEO_MEMORY + cursorPos * 2) = string[i];
+            *(uint8_t*) (VIDEO_MEMORY + cursorPos * 2 + 1) = color;
+#endif
             cursorPos++;
         }
     }
@@ -109,21 +123,29 @@ void WriteString(const char* string, uint8_t color = FOREGROUND_WHITE | BACKGROU
 }
 
 void Clear(uint8_t color = FOREGROUND_WHITE | BACKGROUND_BLACK) {
-    for (uint64_t i = 0; i < VIDEO_WIDTH * VIDEO_HEIGHT; i++)
+    for (uint64_t i = 0; i < VIDEO_WIDTH * VIDEO_HEIGHT; i++) {
+#if DOUBLE_BUFFERING
         videoBuffer[i * 2] = ' ', videoBuffer[i * 2 + 1] = color;
+#else
+        *(uint8_t*) (VIDEO_MEMORY + i * 2) = ' ';
+        *(uint8_t*) (VIDEO_MEMORY + i * 2 + 1) = color;
+#endif
+    }
 
     cursorPos = 0;
     return;
 }
 
 void SwapBuffers() {
-    for (uint16_t i = 0; i < VIDEO_WIDTH * VIDEO_HEIGHT * 2; i++)
+#if DOUBLE_BUFFERING
+    for (uint64_t i = 0; i < VIDEO_WIDTH * VIDEO_HEIGHT * 2; i++)
         *(uint8_t*) (VIDEO_MEMORY + i) = videoBuffer[i];
 
     outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t) (cursorPos & 0xFF));
     outb(0x3D4, 0x0E);
     outb(0x3D5, (uint8_t) ((cursorPos >> 8) & 0xFF));
+#endif
     return;
 }
 

@@ -191,11 +191,22 @@ void ExecuteCommand(const char* command) {
             }
         }
 
-        const char* text = "Unknown command: ";
+        uint32_t index = 0;
+        const char* left = "Unknown command '";
+
+        for (uint32_t i = 0; left[i] != '\0'; i++) {
+            enteredTexts[MAX_INPUT_TEXT_COUNT - 1][index++] = left[i];
+        }
+
+        for (uint32_t i = 0; command[i] != '\0'; i++) {
+            enteredTexts[MAX_INPUT_TEXT_COUNT - 1][index++] = command[i];
+        }
+
+        const char* right = "'.";
 
         for (uint32_t i = 0; i < MAX_INPUT_LENGTH + 1; i++) {
-            enteredTexts[MAX_INPUT_TEXT_COUNT - 1][i] = text[i];
-            if (text[i] == '\0') break;
+            enteredTexts[MAX_INPUT_TEXT_COUNT - 1][index++] = right[i];
+            if (right[i] == '\0') break;
         }
     } return;
 }
@@ -291,15 +302,7 @@ void KeyboardHandler(uint8_t scancode) {
                 textCursorPos = 0, textHistoryPos = 0;
                 ExecuteCommand((const char*) inputText);
 
-                for (uint32_t i = 1; i < MAX_INPUT_TEXT_COUNT; i++) {
-                    for (uint32_t j = 0; j < MAX_INPUT_LENGTH + 1; j++) {
-                        enteredTexts[i - 1][j] = enteredTexts[i][j];
-                        enteredTexts[i][j] = '\0';
-                    }
-                }
-
                 for (uint32_t i = 0; i < MAX_INPUT_LENGTH + 1; i++) {
-                    enteredTexts[MAX_INPUT_TEXT_COUNT - 1][i] = inputText[i];
                     inputText[i] = '\0';
                 } break;
             } default: {
@@ -354,13 +357,13 @@ extern "C" void Entry() {
 
         if (i++ > 1024)
             y = RandInt(10, 100), i = 0;
-        
-        for (uint64_t i = MAX_INPUT_TEXT_COUNT - 8; i < MAX_INPUT_TEXT_COUNT; i++) {
+
+        for (uint64_t i = MAX_INPUT_TEXT_COUNT - 20; i < MAX_INPUT_TEXT_COUNT; i++) {
             if (enteredTexts[i][0] == '\0') continue;
             WriteString((const char*) enteredTexts[i]);
             WriteString("\n");
         }
-        
+
         WriteString("> ");
         uint16_t pos = GetCursorPosition();
         WriteString((const char*) inputText);

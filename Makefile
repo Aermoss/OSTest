@@ -16,13 +16,13 @@ bin/Kernel.bin: bin/Extended.o bin/Binaries.o bin/Kernel.o
 	ld.lld -T Link.ld $^ -o $@
 
 bin/Image.bin: bin/Boot.bin bin/Kernel.bin
-	cat $^ > $@
+	copy /b bin\Boot.bin+bin\Kernel.bin bin\Image.bin
 
 run: bin/Image.bin
 	qemu-system-x86_64 -drive if=floppy,format=raw,file=$<
 
 prepare:
-	mkdir -p bin
+	if not exist bin mkdir bin
 
 clean:
-	rm -rf bin
+	if exist bin rmdir /s /q bin

@@ -1,2 +1,2 @@
-# OSTest
-A 64-bit operating system written in C++ and x86 Assembly.
+# Zenith
+A 64-bit kernel written in [Zircon](https://github.com/Aermoss/Zircon) and Assembly.

@@ -1,25 +1,16 @@
 default: prepare run
 
-bin/Boot.bin: src/Boot.asm $(wildcard src/*.asm)
-	nasm $< -f bin -o $@ -i src
+bin/Boot.o: src/Boot.s
+	zirconc -target aarch64-none-elf -c $< -o $@
 
-bin/Extended.o: src/Extended.asm $(wildcard src/*.asm)
-	nasm $< -f elf64 -o $@ -i src
+bin/Kernel.o: src/Kernel.zir
+	zirconc -target aarch64-none-elf -ffreestanding -c $< -o $@ -O0
 
-bin/Binaries.o: src/Binaries.asm $(wildcard ./*.txt)
-	nasm $< -f elf64 -o $@ -i src
+bin/Kernel.bin: bin/Boot.o bin/Kernel.o
+	ld.lld -T Linker.ld $^ -o $@
 
-bin/Kernel.o: src/Kernel.cpp $(wildcard src/*.hpp)
-	clang --target=x86_64-elf -ffreestanding -mno-red-zone -m64 -c $< -o $@
-
-bin/Kernel.bin: bin/Extended.o bin/Binaries.o bin/Kernel.o
-	ld.lld -T Link.ld $^ -o $@
-
-bin/Image.bin: bin/Boot.bin bin/Kernel.bin
-	copy /b bin\Boot.bin+bin\Kernel.bin bin\Image.bin
-
-run: bin/Image.bin
-	qemu-system-x86_64 -drive if=floppy,format=raw,file=$<
+run: bin/Kernel.bin
+	qemu-system-aarch64 -machine virt -cpu cortex-a57 -kernel $< -nographic
 
 prepare:
 	if not exist bin mkdir bin
